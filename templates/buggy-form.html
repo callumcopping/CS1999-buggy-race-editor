@@ -19,19 +19,36 @@
   </style>
   </head>
 
-  <h1>Make buggy</h1>
-  <h2>Please input the number of wheels and flag colour you would like, wheels must be an even integer and colour can be hex or a CSS colour<h2>
+  {% if buggy %}
+  <h1>Editing buggy #{{ buggy['id'] }}</h1>
+  {%else%}
+    <h1>Make a buggy</h1>
+  {% endif %}
   <p>
     {{ msg }}
   </p>
   <form action="/new" method="post">
-    <label for="qty_wheels">Number of wheels:</label>
+    <input type="hidden" value="{{ buggy['id'] }}" name="id" />
+    <label for="qty_wheels">Number of wheels, must be a whole positvie even number</label>
     <input type="text" value="{{ buggy['qty_wheels'] }}" name="qty_wheels" />
     <br>
-    <label for="flag_color">Flag colour:</label>
+    <label for="tyres">Type of Tyres:</label>
+    <select name="tyres">
+      <option value="{{ buggy['tyres'] }}">{{ buggy['tyres'] }}</option>
+      <option value="knobbly">knobbly</option>
+      <option value="slick">slick</option>
+      <option value="steelband">steelband</option>
+      <option value="reactive">reactive</option>
+      <option value="maglev">maglev</option>
+    </select>
+    <br>
+    <label for="qty_tyres">Number of tyres, must be equal to or greater than number of wheels</label>
+    <input type="text" value="{{ buggy['qty_tyres'] }}" name="qty_tyres" />
+    <br>
+    <label for="flag_color">Flag colour, must be a css colour or a hex code</label>
     <input type="text" value="{{ buggy['flag_color'] }}" name="flag_color" />
     <br>
-    <label for="flag_color_secondary">Secondary flag colour:</label>
+    <label for="flag_color_secondary">Secondary flag colour, must be a css colour or a hex code</label>
     <input type="text" value="{{ buggy['flag_color_secondary'] }}" name="flag_color_secondary" />
     <br>
     <label for="flag_pattern">Flag Pattern:</label>
@@ -59,10 +76,13 @@
       <option value="solar">solar</option>
       <option value="wind">wind</option>
     </select>
-    <label for="power_units">Power Unitss:</label>
+    <br>
+    <label for="power_units">Power Units, must be a positive whole number</label>
     <input type="text" value="{{ buggy['power_units'] }}" name="power_units" />
     <br>
-    <input type="submit" class="button">
+    <input type="submit" class="button" name = "autofill">
+    <button type="submit" name = "autofill" value = "auto" class = "button">Default Values</button>
+    <br>
   </form>
   <p>
     <a href="/" class="button">home</a>

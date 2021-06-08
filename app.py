@@ -26,26 +26,43 @@ def home():
 @app.route('/new', methods = ['POST', 'GET'])
 def create_buggy():
     if request.method == 'GET':
-        con = sql.connect(DATABASE_FILE)
-        con.row_factory = sql.Row
-        cur = con.cursor()
-        cur.execute("SELECT * FROM buggies")
-        record = cur.fetchone();
-        return render_template("buggy-form.html", buggy = record)
+        # con = sql.connect(DATABASE_FILE)
+        # con.row_factory = sql.Row
+        # cur = con.cursor()
+        # cur.execute("SELECT * FROM buggies")
+        # record = cur.fetchone();
+        return render_template("buggy-form.html", buggy = None)
     elif request.method == 'POST':
-        con = sql.connect(DATABASE_FILE)
-        con.row_factory = sql.Row
-        cur = con.cursor()
-        cur.execute("SELECT * FROM buggies")
-        record = cur.fetchone();
         msg=""
         qty_wheels = request.form['qty_wheels'].strip()
+        tyres = request.form['tyres']
+        qty_tyres = request.form['qty_tyres'].strip()
         flag_color = request.form['flag_color'].strip()
         flag_color_secondary = request.form['flag_color_secondary'].strip()
         flag_pattern = request.form['flag_pattern']
         power_type = request.form['power_type']
         power_units = request.form['power_units'].strip()
+        autofill = request.form['autofill']
+        buggy_id = request.form['id']
 
+        con = sql.connect(DATABASE_FILE)
+        con.row_factory = sql.Row
+        cur = con.cursor()
+        cur.execute("SELECT * FROM buggies WHERE id=?", (buggy_id,))
+        record = cur.fetchone();
+
+        if autofill == "auto":
+            qty_wheels = "4"
+            tyres = "knobbly"
+            qty_tyres = "4"
+            flag_color = "purple"
+            flag_color_secondary = "orange"
+            flag_pattern = "plain"
+            power_type = "petrol"
+            power_units = "25"
+
+        if qty_wheels == "":
+            qty_wheels = "4"
         if not qty_wheels.isdigit():
             msg = f"Not an integer, you inputted: {qty_wheels}, Please input a whole number for example: 4"
             return render_template("buggy-form.html", msg = msg, buggy = record)
@@ -56,6 +73,20 @@ def create_buggy():
             msg = f"Not a number greater than 0, you inputted: {qty_wheels}, Please input a number greater than 0 for example: 6"
             return render_template("buggy-form.html", msg = msg, buggy = record)
 
+        if qty_tyres == "":
+            qty_tyres = qty_wheels
+        if tyres == "":
+            tyres = "knobbly"
+
+        if not qty_tyres.isdigit():
+            msg = f"Not an integer, you inputted: {qty_tyres}, Please input a whole number for example: 4"
+            return render_template("buggy-form.html", msg = msg, buggy = record)
+        if (int(qty_tyres)) < int(qty_wheels):
+            msg = f"Less tyres than wheels you inputted: {qty_wheels}, Please input a number of tryes greater than or equal to number of tyres"
+            return render_template("buggy-form.html", msg = msg, buggy = record)
+
+        if flag_color == "":
+            flag_color = "purple"
         try:
             flag_color = webcolors.name_to_hex(flag_color)
         except:
@@ -64,6 +95,8 @@ def create_buggy():
                 msg = f"Not a hex: {flag_color}, Please input a hex code for example: #ffffff"
                 return render_template("buggy-form.html", msg = msg, buggy = record)
 
+        if flag_color_secondary == "":
+            flag_color_secondary = "orange"
         try:
             flag_color_secondary = webcolors.name_to_hex(flag_color_secondary)
         except:
@@ -71,6 +104,14 @@ def create_buggy():
             if not match:
                 msg = f"Not a hex: {flag_color_secondary}, Please input a hex code for example: #ffffff"
                 return render_template("buggy-form.html", msg = msg, buggy = record)
+
+        if flag_pattern == "":
+            flag_pattern = "plain"
+
+        if power_units == "":
+            power_units = "25"
+        if power_type == "":
+            power_type = "petrol"
 
         if not power_units.isdigit():
             msg = f"Not an integer, you inputted: {power_units}, Please input a whole number for example: 5"
@@ -80,18 +121,26 @@ def create_buggy():
             msg = f"Not a number greater than 0, you inputted: {power_units}, Please input a number greater than 0 for example: 100"
             return render_template("buggy-form.html", msg = msg, buggy = record)
 
-        #cost calulation test
-        total_cost = total_cost_calc(power_type, power_units)
-        print(total_cost)
+        #cost calulation
+        total_cost = total_cost_calc(power_type, power_units, tyres, qty_tyres)
+        #print(total_cost)
+
+
 
         try:
             with sql.connect(DATABASE_FILE) as con:
                 cur = con.cursor()
-                cur.execute(
-                    "UPDATE buggies set qty_wheels=?, flag_color=?, flag_color_secondary=?, flag_pattern=?, power_type=?, power_units=?, total_cost=?  WHERE id=?",
-                    (qty_wheels, flag_color, flag_color_secondary, flag_pattern, power_type, power_units, total_cost, DEFAULT_BUGGY_ID)
-                )
-                con.commit()
+                if buggy_id:
+                    cur.execute(
+                    "UPDATE buggies set qty_wheels=?, flag_color=?, flag_color_secondary=?, flag_pattern=?, power_type=?, power_units=?, total_cost=?, tyres =?, qty_tyres=?  WHERE id=?",
+                    (qty_wheels, flag_color, flag_color_secondary, flag_pattern, power_type, power_units, total_cost, tyres, qty_tyres, buggy_id)
+                    )
+                else:
+                    cur.execute(
+                        "INSERT INTO buggies (qty_wheels, flag_color, flag_color_secondary, flag_pattern, power_type, power_units, total_cost, tyres, qty_tyres) VALUES(?,?,?,?,?,?,?,?,?)",
+                        (qty_wheels, flag_color, flag_color_secondary, flag_pattern, power_type, power_units, total_cost, tyres, qty_tyres,)
+                    )
+                    con.commit()
                 msg = f"You have created a buggy with: {qty_wheels} wheels and a {flag_color} flag"
         except:
             con.rollback()
@@ -100,7 +149,7 @@ def create_buggy():
             con.close()
         return render_template("updated.html", msg = msg)
 
-def total_cost_calc(power_type, power_units):
+def total_cost_calc(power_type, power_units, tyres, qty_tyres):
     total_cost = 0
     if power_type == "petrol":
         total_cost = 4 * int(power_units)
@@ -122,6 +171,16 @@ def total_cost_calc(power_type, power_units):
         total_cost = 40 * int(power_units)
     if power_type == "wind":
         total_cost = 20 * int(power_units)
+    if tyres == "knobbly":
+        total_cost += 15 * int(qty_tyres)
+    if tyres == "slick":
+        total_cost += 10 * int(qty_tyres)
+    if tyres == "steelband":
+        total_cost += 20 * int(qty_tyres)
+    if tyres == "reactive":
+        total_cost += 40 * int(qty_tyres)
+    if tyres == "maglev":
+        total_cost += 50 * int(qty_tyres)
     return(total_cost)
 
 
@@ -134,16 +193,21 @@ def show_buggies():
     con.row_factory = sql.Row
     cur = con.cursor()
     cur.execute("SELECT * FROM buggies")
-    record = cur.fetchone();
-    return render_template("buggy.html", buggy = record)
+    records = cur.fetchall();
+    return render_template("buggy.html", buggies = records)
 
 #------------------------------------------------------------
 # a placeholder page for editing the buggy: you'll need
 # to change this when you tackle task 2-EDIT
 #------------------------------------------------------------
-@app.route('/edit')
-def edit_buggy():
-    return render_template("buggy-form.html")
+@app.route('/edit/<buggy_id>')
+def edit_buggy(buggy_id):
+    con = sql.connect(DATABASE_FILE)
+    con.row_factory = sql.Row
+    cur = con.cursor()
+    cur.execute("SELECT * FROM buggies WHERE id=?", (buggy_id,))
+    record = cur.fetchone();
+    return render_template("buggy-form.html", buggy=record)
 
 #------------------------------------------------------------
 # You probably don't need to edit this... unless you want to ;)
