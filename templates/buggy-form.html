@@ -2,14 +2,68 @@
 
 {% block content %}
 
-  <h1>Make buggy</h1>
+  <head>
+  <style>
+  input[type=text] {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    box-sizing: border-box;
+    border: 1px solid #555;
+    outline: none;
+  }
 
+  input[type=text]:focus {
+    background-color: lightblue;
+  }
+  </style>
+  </head>
+
+  <h1>Make buggy</h1>
+  <h2>Please input the number of wheels and flag colour you would like, wheels must be an even integer and colour can be hex or a CSS colour<h2>
+  <p>
+    {{ msg }}
+  </p>
   <form action="/new" method="post">
     <label for="qty_wheels">Number of wheels:</label>
-    <input type="text" name="qty_wheels" />
+    <input type="text" value="{{ buggy['qty_wheels'] }}" name="qty_wheels" />
+    <br>
+    <label for="flag_color">Flag colour:</label>
+    <input type="text" value="{{ buggy['flag_color'] }}" name="flag_color" />
+    <br>
+    <label for="flag_color_secondary">Secondary flag colour:</label>
+    <input type="text" value="{{ buggy['flag_color_secondary'] }}" name="flag_color_secondary" />
+    <br>
+    <label for="flag_pattern">Flag Pattern:</label>
+    <select name="flag_pattern">
+      <option value="{{ buggy['flag_pattern'] }}">{{ buggy['flag_pattern'] }}</option>
+      <option value="plain">Plain</option>
+      <option value="vstripe">Vertical Stripe</option>
+      <option value="hstripe">Horizontal Stripe</option>
+      <option value="dstripe">Diagonal Stripe</option>
+      <option value="checker">Checker Flag</option>
+      <option value="spot">Spotty</option>
+    </select>
+    <br>
+    <label for="power_type">Power Type:</label>
+    <select name="power_type">
+      <option value="{{ buggy['power_type'] }}">{{ buggy['power_type'] }}</option>
+      <option value="petrol">petrol</option>
+      <option value="fusion">fusion</option>
+      <option value="steam">steam</option>
+      <option value="bio">bio</option>
+      <option value="electric">electric</option>
+      <option value="rocket">rocket</option>
+      <option value="hamster">hamster</option>
+      <option value="thermo">thermo</option>
+      <option value="solar">solar</option>
+      <option value="wind">wind</option>
+    </select>
+    <label for="power_units">Power Unitss:</label>
+    <input type="text" value="{{ buggy['power_units'] }}" name="power_units" />
+    <br>
     <input type="submit" class="button">
   </form>
-
   <p>
     <a href="/" class="button">home</a>
   </p>

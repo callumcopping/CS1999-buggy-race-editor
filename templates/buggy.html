@@ -2,6 +2,12 @@
 
 {% block content %}
 
+  <head>
+  <style>
+  tr:hover {background-color:pink;}
+  </style>
+  </head>
+
   <h1>Buggy</h1>
 
   <table>
@@ -10,6 +16,24 @@
     </tr>
     <tr>
       <td>Wheels:</td> <td> {{ buggy['qty_wheels'] }} </td>
+    </tr>
+    <tr>
+      <td>Flag Color:</td> <td bgcolor = "{{ buggy['flag_color'] }}">{{ buggy['flag_color'] }}</td>
+    </tr>
+    <tr>
+      <td>Flag Secondary Color:</td> <td bgcolor = "{{ buggy['flag_color_secondary'] }}">{{ buggy['flag_color_secondary'] }}</td>
+    </tr>
+    <tr>
+      <td>Flag Pattern:</td> <td> {{ buggy['flag_pattern'] }} </td>
+    </tr>
+    <tr>
+      <td>Power Type:</td> <td> {{ buggy['power_type'] }} </td>
+    </tr>
+    <tr>
+      <td>Power Units:</td> <td> {{ buggy['power_units'] }} </td>
+    </tr>
+    <tr>
+      <td>Total Cost:</td> <td> {{ buggy['total_cost'] }} </td>
     </tr>
   </table>
 

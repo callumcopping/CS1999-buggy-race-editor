@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 import sqlite3 as sql
+import re
+import webcolors
 
 # app - The flask application where all the magical things are configured.
 app = Flask(__name__)
@@ -24,25 +26,104 @@ def home():
 @app.route('/new', methods = ['POST', 'GET'])
 def create_buggy():
     if request.method == 'GET':
-        return render_template("buggy-form.html")
+        con = sql.connect(DATABASE_FILE)
+        con.row_factory = sql.Row
+        cur = con.cursor()
+        cur.execute("SELECT * FROM buggies")
+        record = cur.fetchone();
+        return render_template("buggy-form.html", buggy = record)
     elif request.method == 'POST':
+        con = sql.connect(DATABASE_FILE)
+        con.row_factory = sql.Row
+        cur = con.cursor()
+        cur.execute("SELECT * FROM buggies")
+        record = cur.fetchone();
         msg=""
-        qty_wheels = request.form['qty_wheels']
+        qty_wheels = request.form['qty_wheels'].strip()
+        flag_color = request.form['flag_color'].strip()
+        flag_color_secondary = request.form['flag_color_secondary'].strip()
+        flag_pattern = request.form['flag_pattern']
+        power_type = request.form['power_type']
+        power_units = request.form['power_units'].strip()
+
+        if not qty_wheels.isdigit():
+            msg = f"Not an integer, you inputted: {qty_wheels}, Please input a whole number for example: 4"
+            return render_template("buggy-form.html", msg = msg, buggy = record)
+        if (int(qty_wheels) % 2) != 0:
+            msg = f"Not an even number, you inputted: {qty_wheels}, Please input an even number for example: 8"
+            return render_template("buggy-form.html", msg = msg, buggy = record)
+        if int(qty_wheels) < 1:
+            msg = f"Not a number greater than 0, you inputted: {qty_wheels}, Please input a number greater than 0 for example: 6"
+            return render_template("buggy-form.html", msg = msg, buggy = record)
+
+        try:
+            flag_color = webcolors.name_to_hex(flag_color)
+        except:
+            match = re.search(r'^#(?:[0-9a-fA-F]{3}){1,2}$', flag_color)
+            if not match:
+                msg = f"Not a hex: {flag_color}, Please input a hex code for example: #ffffff"
+                return render_template("buggy-form.html", msg = msg, buggy = record)
+
+        try:
+            flag_color_secondary = webcolors.name_to_hex(flag_color_secondary)
+        except:
+            match = re.search(r'^#(?:[0-9a-fA-F]{3}){1,2}$', flag_color_secondary)
+            if not match:
+                msg = f"Not a hex: {flag_color_secondary}, Please input a hex code for example: #ffffff"
+                return render_template("buggy-form.html", msg = msg, buggy = record)
+
+        if not power_units.isdigit():
+            msg = f"Not an integer, you inputted: {power_units}, Please input a whole number for example: 5"
+            return render_template("buggy-form.html", msg = msg, buggy = record)
+
+        if int(power_units) < 1:
+            msg = f"Not a number greater than 0, you inputted: {power_units}, Please input a number greater than 0 for example: 100"
+            return render_template("buggy-form.html", msg = msg, buggy = record)
+
+        #cost calulation test
+        total_cost = total_cost_calc(power_type, power_units)
+        print(total_cost)
+
         try:
             with sql.connect(DATABASE_FILE) as con:
                 cur = con.cursor()
                 cur.execute(
-                    "UPDATE buggies set qty_wheels=? WHERE id=?",
-                    (qty_wheels, DEFAULT_BUGGY_ID)
+                    "UPDATE buggies set qty_wheels=?, flag_color=?, flag_color_secondary=?, flag_pattern=?, power_type=?, power_units=?, total_cost=?  WHERE id=?",
+                    (qty_wheels, flag_color, flag_color_secondary, flag_pattern, power_type, power_units, total_cost, DEFAULT_BUGGY_ID)
                 )
                 con.commit()
-                msg = "Record successfully saved"
+                msg = f"You have created a buggy with: {qty_wheels} wheels and a {flag_color} flag"
         except:
             con.rollback()
             msg = "error in update operation"
         finally:
             con.close()
         return render_template("updated.html", msg = msg)
+
+def total_cost_calc(power_type, power_units):
+    total_cost = 0
+    if power_type == "petrol":
+        total_cost = 4 * int(power_units)
+    if power_type == "fusion":
+        total_cost = 400 * int(power_units)
+    if power_type == "steam":
+        total_cost = 3 * int(power_units)
+    if power_type == "bio":
+        total_cost = 5 * int(power_units)
+    if power_type == "electric":
+        total_cost = 20 * int(power_units)
+    if power_type == "rocket":
+        total_cost = 16 * int(power_units)
+    if power_type == "hamster":
+        total_cost = 3 * int(power_units)
+    if power_type == "thermo":
+        total_cost = 300 * int(power_units)
+    if power_type == "solar":
+        total_cost = 40 * int(power_units)
+    if power_type == "wind":
+        total_cost = 20 * int(power_units)
+    return(total_cost)
+
 
 #------------------------------------------------------------
 # a page for displaying the buggy
@@ -53,7 +134,7 @@ def show_buggies():
     con.row_factory = sql.Row
     cur = con.cursor()
     cur.execute("SELECT * FROM buggies")
-    record = cur.fetchone(); 
+    record = cur.fetchone();
     return render_template("buggy.html", buggy = record)
 
 #------------------------------------------------------------
@@ -80,7 +161,7 @@ def summary():
     cur = con.cursor()
     cur.execute("SELECT * FROM buggies WHERE id=? LIMIT 1", (DEFAULT_BUGGY_ID))
 
-    buggies = dict(zip([column[0] for column in cur.description], cur.fetchone())).items() 
+    buggies = dict(zip([column[0] for column in cur.description], cur.fetchone())).items()
     return jsonify({ key: val for key, val in buggies if (val != "" and val is not None) })
 
 # You shouldn't need to add anything below this!

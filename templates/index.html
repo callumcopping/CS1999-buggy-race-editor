@@ -2,15 +2,54 @@
 
 {% block content %}
 
-  <h1>
-    My buggy editor
-  </h1>
+  <head>
+  <style>
+  body {margin:0;}
 
-  <div class="spacer">
-    <a href="/new" class="button">Make buggy</a>
-    <a href="/buggy" class="button">Show buggy</a>
-    <a href="/json" class="button">Get buggy JSON</a>
-  </div>
+  ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #DE354C;
+    position: fixed;
+    top: 0;
+    width: 100%;
+  }
+
+  li {
+    float: left;
+  }
+
+  li a {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+  }
+
+  li a:hover:not(.active) {
+    background-color: #932432;
+  }
+
+  .active {
+    background-color: #ff5100;
+  }
+  </style>
+  </head>
+
+  <body>
+
+  <ul>
+    <li><a href="/new" class="button">Make buggy</a></li>
+    <li><a href="/buggy" class="button">Show buggy</a></li>
+    <li><a href="/json" class="button">Get buggy JSON</a></li>
+  </ul>
+  <div style="padding:20px;margin-top:30px;background-color:#3C1874;height:1500px;">
+  <h1>
+    Callum Copping's Buggy Editor :)
+  </h1>
 
   <p>
     Use this editor to specify a racing buggy. The editor saves it in its
@@ -24,5 +63,6 @@
     will be disqualified from that race... so make sure you program your editor
     correctly.
   </p>
+  </div>
 
 {% endblock %}
