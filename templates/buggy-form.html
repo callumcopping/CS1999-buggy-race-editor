@@ -4,6 +4,39 @@
 
   <head>
   <style>
+  body {margin:0;}
+
+  ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #DE354C;
+    position: fixed;
+    top: 0;
+    width: 100%;
+  }
+
+  li {
+    float: left;
+  }
+
+  li a {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+  }
+
+  li a:hover:not(.active) {
+    background-color: #932432;
+  }
+
+  .active {
+    background-color: #ff5100;
+  }
+
   input[type=text] {
     width: 100%;
     padding: 12px 20px;
@@ -18,7 +51,7 @@
   }
   </style>
   </head>
-
+  <div style="padding:20px;margin-top:30px;background-color:lightgrey;height:1500px;">
   {% if buggy %}
   <h1>Editing buggy #{{ buggy['id'] }}</h1>
   {%else%}
@@ -84,8 +117,10 @@
     <button type="submit" name = "autofill" value = "auto" class = "button">Default Values</button>
     <br>
   </form>
-  <p>
-    <a href="/" class="button">home</a>
-  </p>
+  <ul>
+    <li><a href="/" class="button">Home</a></li>
+    <li><a href="/buggy" class="button">Show buggies</a></li>
+    <li><a href="/json" class="button">Get buggy JSON</a></li>
+  </ul>
 
 {% endblock %}
